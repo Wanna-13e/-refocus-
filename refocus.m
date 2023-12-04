@@ -14,21 +14,36 @@ for x=1:height
         output_color_B =0;
         for u = -stereo_diff:stereo_diff %u，v为单位偏移位置
             for v = -stereo_diff:stereo_diff %小循环，对单位大像素中的小像素遍历
+                
                 x_ind = u*(1-1/alpha) + x;%根据公式，实际像面s上x的坐标 坐标：x+u(1-1/alpha)
                 y_ind = v*(1-1/alpha) + y;%根据公式，实际像面s上y的坐标 坐标：y+u(1-1/alpha)
+
                 %向上取整
                 x_ceil = ceil(x_ind);
                 y_ceil = ceil(y_ind);
-                %进行边界判定，对于对应s像面两个大像素点之间的光，计算二维权重
+
+                %如果对应到了两个大像素之间，则进行线性插值
+                if x_ceil-x_ind==0
+                    x_1_w=0.5;
+                    x_2_w = 0.5;
+                else
+                    x_1_w = 1;
+                    x_2_w = 0;
+                end
+                %y坐标同理
+                if y_ceil-y_ind==0
+                    y_1_w=0.5;
+                    y_2_w=0.5;
+                else
+                    y_1_w = 1;
+                    y_2_w = 0;
+                end
+
+                %进行边界判定，对于对应s像面两个大像素点之间的光，选择相邻的像素计算二维权重
                 x_1 = bound_coor(x_ceil  ,height );
                 y_1 = bound_coor(y_ceil  ,width);
                 x_2 = bound_coor(x_ceil+1,height );
                 y_2 = bound_coor(y_ceil+1,width);
-                %使用二维线性插值，越近权重越大
-                x_1_w   = x_ceil-x_ind       ;
-                x_2_w   = 1 - x_1_w                ;
-                y_1_w   = y_ceil-y_ind      ;
-                y_2_w   = 1-y_1_w                  ;
 
                 %光场图像上小像素点的位置
                 x_1_index = 1+u+stereo_diff + (x_1-1)*window_side   ;
